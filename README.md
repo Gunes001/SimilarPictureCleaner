@@ -95,3 +95,6 @@ go run main.go -d /path/to/images 90
 3. 添加图片预览功能
 4. 提供更多相似度算法选择
 5. 添加撤销删除功能
+
+## 8. Third-party libraries
+- This project uses the following third-party libraries:[github.com/corona10/goimagehash] (BSD 2-Clause License)
