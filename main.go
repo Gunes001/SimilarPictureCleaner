@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"image"
 	"image/jpeg"
@@ -19,13 +20,18 @@ type ImageInfo struct {
 }
 
 func main() {
-	if len(os.Args) < 3 {
-		fmt.Println("Usage: go run main.go <directory> <similarity percentage>")
+	// Define the -d flag
+	deleteFlag := flag.Bool("d", false, "Specify whether to delete similar images")
+	flag.Parse()
+
+	// Check the number of arguments
+	if len(flag.Args()) < 2 {
+		fmt.Println("Usage: go run main.go [-d] <directory> <similarity percentage>")
 		return
 	}
 
-	dir := os.Args[1]
-	similarityThreshold, err := parsePercentage(os.Args[2])
+	dir := flag.Arg(0)
+	similarityThreshold, err := parsePercentage(flag.Arg(1))
 	if err != nil {
 		fmt.Println("Invalid similarity percentage:", err)
 		return
@@ -39,6 +45,7 @@ func main() {
 
 	groups := findSimilarImages(images, similarityThreshold)
 
+	// Display similar images
 	for _, group := range groups {
 		fmt.Println("Similar images:")
 		for _, img := range group {
@@ -47,19 +54,21 @@ func main() {
 		fmt.Println()
 	}
 
-	var totalSaved int64
-	for _, group := range groups {
-		if len(group) > 1 {
-			saved, err := deleteSimilarImages(group)
-			if err != nil {
-				fmt.Println("Error deleting images:", err)
-				continue
+	// Delete similar images if the -d flag is set
+	if *deleteFlag {
+		var totalSaved int64
+		for _, group := range groups {
+			if len(group) > 1 {
+				saved, err := deleteSimilarImages(group)
+				if err != nil {
+					fmt.Println("Error deleting images:", err)
+					continue
+				}
+				totalSaved += saved
 			}
-			totalSaved += saved
 		}
+		fmt.Printf("Total space saved: %d bytes\n", totalSaved)
 	}
-
-	fmt.Printf("Total space saved: %d bytes\n", totalSaved)
 }
 
 func parsePercentage(percentageStr string) (float64, error) {
